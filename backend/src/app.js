@@ -34,6 +34,33 @@ app.use("/api", apiLimiter);
 
 app.get("/api/health", (req, res) => res.json({ success: true, message: "VietEats AI API is running 🍜" }));
 
+/**
+ * Route seed dữ liệu qua trình duyệt - dùng cho môi trường không có Shell (vd Render free tier).
+ * Bảo vệ bằng khoá bí mật SEED_SECRET_KEY (biến môi trường) - không ai đoán được thì không chạy được.
+ * Cách dùng: mở  https://<domain>/api/run-seed/<SEED_SECRET_KEY>  trên trình duyệt MỘT LẦN.
+ * ⚠️ Chạy lại sẽ XOÁ và tạo lại toàn bộ dữ liệu - không bấm/mở link này nhiều lần khi đã có dữ liệu thật.
+ */
+app.get("/api/run-seed/:key", async (req, res) => {
+  const expectedKey = process.env.SEED_SECRET_KEY;
+  if (!expectedKey) {
+    return res.status(403).json({ success: false, message: "SEED_SECRET_KEY chưa được cấu hình trên server." });
+  }
+  if (req.params.key !== expectedKey) {
+    return res.status(403).json({ success: false, message: "Sai khoá bí mật." });
+  }
+  try {
+    const { runSeed } = require("./seed/seed");
+    const result = await runSeed({ destroy: false });
+    res.json({
+      success: true,
+      message: "🎉 Seed dữ liệu hoàn tất! Đã tạo xong 63 tỉnh, món ăn, nhà hàng, đánh giá và tài khoản mẫu.",
+      data: result,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi khi seed dữ liệu: " + err.message });
+  }
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/provinces", provinceRoutes);

@@ -34,9 +34,10 @@ const FESTIVAL_POOL = [
   { name: "Hội làng truyền thống", time: "Tháng 8 âm lịch" },
 ];
 
-async function run() {
-  await connectDB();
-  const destroy = process.argv.includes("--destroy");
+async function runSeed({ destroy = false } = {}) {
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
 
   console.log("🧹 Đang xoá dữ liệu cũ...");
   await Promise.all([
@@ -52,7 +53,7 @@ async function run() {
 
   if (destroy) {
     console.log("✅ Đã xoá toàn bộ dữ liệu.");
-    process.exit(0);
+    return { destroyed: true };
   }
 
   // ---------- 1. USERS (admin + demo + pool để làm tác giả review) ----------
@@ -295,11 +296,30 @@ async function run() {
   console.log(`   Admin : ${admin.email} / ${process.env.SEED_ADMIN_PASSWORD || "Admin@123"}`);
   console.log(`   User  : ${demo.email} / ${process.env.SEED_USER_PASSWORD || "Demo@123"}`);
 
-  await mongoose.disconnect();
-  process.exit(0);
+  return {
+    provinces: provinces.length,
+    foods: foods.length,
+    restaurants: restaurants.length,
+    reviews: reviewDocs.length,
+    users: allUsers.length,
+    adminEmail: admin.email,
+    userEmail: demo.email,
+  };
 }
 
-run().catch((err) => {
-  console.error("❌ Lỗi khi seed dữ liệu:", err);
-  process.exit(1);
-});
+module.exports = { runSeed };
+
+// Chạy trực tiếp qua CLI: `node src/seed/seed.js` hoặc `npm run seed`
+if (require.main === module) {
+  const destroy = process.argv.includes("--destroy");
+  runSeed({ destroy })
+    .then(async () => {
+      await mongoose.disconnect();
+      process.exit(0);
+    })
+    .catch(async (err) => {
+      console.error("❌ Lỗi khi seed dữ liệu:", err);
+      await mongoose.disconnect().catch(() => {});
+      process.exit(1);
+    });
+}
