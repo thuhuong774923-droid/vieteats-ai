@@ -32,6 +32,32 @@ app.use(xss());
 if (process.env.NODE_ENV !== "test") app.use(morgan("dev"));
 app.use("/api", apiLimiter);
 
+app.get("/", (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>VietEats AI API</title>
+  <style>
+    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #fff7ed; color: #292524; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .card { text-align: center; background: #fff; padding: 40px 48px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { color: #57534e; margin: 4px 0; }
+    .badge { display: inline-block; margin-top: 16px; padding: 6px 14px; background: #dcfce7; color: #166534; border-radius: 999px; font-size: 13px; font-weight: 600; }
+    a { color: #ea580c; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🍜 VietEats AI</h1>
+    <p>Backend API đang chạy.</p>
+    <p>Kiểm tra trạng thái: <a href="/api/health">/api/health</a></p>
+    <span class="badge">● Online</span>
+  </div>
+</body>
+</html>`);
+});
+
 app.get("/api/health", (req, res) => res.json({ success: true, message: "VietEats AI API is running 🍜" }));
 
 /**
