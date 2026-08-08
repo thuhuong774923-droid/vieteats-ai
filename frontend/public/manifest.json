@@ -1,0 +1,23 @@
+{
+  "name": "VietEats AI - Khám phá tinh hoa ẩm thực Việt Nam",
+  "short_name": "VietEats AI",
+  "description": "Khám phá 63 tỉnh thành và hơn 1000 món ăn đặc sản Việt Nam cùng trợ lý AI thông minh.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8F3",
+  "theme_color": "#D62828",
+  "orientation": "portrait-primary",
+  "lang": "vi",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "AI Assistant", "url": "/ai-assistant", "description": "Trò chuyện với trợ lý ẩm thực AI" },
+    { "name": "Thực đơn", "url": "/menu", "description": "Khám phá món ăn đặc sản" },
+    { "name": "Food Passport", "url": "/passport", "description": "Xem hành trình khám phá của bạn" }
+  ],
+  "categories": ["food", "travel", "lifestyle"]
+}

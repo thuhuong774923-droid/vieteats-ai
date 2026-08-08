@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-poppins: "Poppins", sans-serif;
+  --font-inter: "Inter", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-textmain dark:bg-background-dark dark:text-textmain-dark;
+  font-family: var(--font-inter);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6282866;
+  border-radius: 8px;
+}
+
+/* Glassmorphism utility */
+.glass {
+  @apply backdrop-blur-glass bg-white/60 dark:bg-black/30 border border-white/40 dark:border-white/10;
+}
+
+.card-md3 {
+  @apply rounded-xl2 bg-surface dark:bg-surface-dark shadow-card transition-all duration-300 hover:shadow-glass hover:-translate-y-1;
+}
+
+.btn-primary {
+  @apply bg-primary text-white rounded-xl2 px-5 py-2.5 font-semibold shadow-md hover:bg-primary-dark active:scale-95 transition-all duration-200;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-white rounded-xl2 px-5 py-2.5 font-semibold shadow-md hover:bg-secondary-light active:scale-95 transition-all duration-200;
+}
+
+.btn-outline {
+  @apply border-2 border-primary text-primary rounded-xl2 px-5 py-2.5 font-semibold hover:bg-primary hover:text-white active:scale-95 transition-all duration-200;
+}
+
+/* Skeleton loading */
+.skeleton {
+  @apply relative overflow-hidden bg-gray-200 dark:bg-gray-700 rounded-xl2;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Ripple effect */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+.ripple::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  transform: scale(0);
+  animation: none;
+}
+.ripple:active::after {
+  animation: ripple-anim 0.5s ease-out;
+}
+@keyframes ripple-anim {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
