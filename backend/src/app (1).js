@@ -32,40 +32,18 @@ app.use(xss());
 if (process.env.NODE_ENV !== "test") app.use(morgan("dev"));
 app.use("/api", apiLimiter);
 
-app.get("/", (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <title>VietEats AI API</title>
-  <style>
-    body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #fff7ed; color: #292524; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-    .card { text-align: center; background: #fff; padding: 40px 48px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
-    h1 { margin: 0 0 8px; font-size: 28px; }
-    p { color: #57534e; margin: 4px 0; }
-    .badge { display: inline-block; margin-top: 16px; padding: 6px 14px; background: #dcfce7; color: #166534; border-radius: 999px; font-size: 13px; font-weight: 600; }
-    a { color: #ea580c; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>🍜 VietEats AI</h1>
-    <p>Backend API đang chạy.</p>
-    <p>Kiểm tra trạng thái: <a href="/api/health">/api/health</a></p>
-    <span class="badge">● Online</span>
-  </div>
-</body>
-</html>`);
-});
-
 app.get("/api/health", (req, res) => res.json({ success: true, message: "VietEats AI API is running 🍜" }));
 
 /**
  * Route seed dữ liệu qua trình duyệt - dùng cho môi trường không có Shell (vd Render free tier).
  * Bảo vệ bằng khoá bí mật SEED_SECRET_KEY (biến môi trường) - không ai đoán được thì không chạy được.
+ * Có khoá chống chạy trùng lặp (isSeeding) - nếu trình duyệt lỡ gửi 2 yêu cầu cùng lúc
+ * (do tải lại trang, tính năng "tải trước" của Chrome...) thì yêu cầu thứ 2 sẽ bị từ chối
+ * thay vì làm hỏng dữ liệu giữa chừng.
  * Cách dùng: mở  https://<domain>/api/run-seed/<SEED_SECRET_KEY>  trên trình duyệt MỘT LẦN.
- * ⚠️ Chạy lại sẽ XOÁ và tạo lại toàn bộ dữ liệu - không bấm/mở link này nhiều lần khi đã có dữ liệu thật.
+ * ⚠️ Chạy lại sau khi đã xong sẽ XOÁ và tạo lại toàn bộ dữ liệu - không mở link này nhiều lần khi đã có dữ liệu thật.
  */
+let isSeeding = false;
 app.get("/api/run-seed/:key", async (req, res) => {
   const expectedKey = process.env.SEED_SECRET_KEY;
   if (!expectedKey) {
@@ -74,6 +52,13 @@ app.get("/api/run-seed/:key", async (req, res) => {
   if (req.params.key !== expectedKey) {
     return res.status(403).json({ success: false, message: "Sai khoá bí mật." });
   }
+  if (isSeeding) {
+    return res.status(429).json({
+      success: false,
+      message: "Đang seed dữ liệu rồi (có yêu cầu khác đang chạy) - vui lòng đợi, đừng mở lại link này.",
+    });
+  }
+  isSeeding = true;
   try {
     const { runSeed } = require("./seed/seed");
     const result = await runSeed({ destroy: false });
@@ -84,6 +69,8 @@ app.get("/api/run-seed/:key", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi khi seed dữ liệu: " + err.message });
+  } finally {
+    isSeeding = false;
   }
 });
 
