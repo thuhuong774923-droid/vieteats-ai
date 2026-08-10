@@ -50,7 +50,7 @@ Trả lời bằng ngôn ngữ: ${language}.`;
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
-      temperature: 0.2,
+      temperature: 0.5,
     });
     return completion.choices[0].message.content;
   }
