@@ -47,24 +47,70 @@ Mục tiêu là đưa ra thông tin ẩm thực Việt Nam chính xác và phù 
 };
 
 const ruleBasedAssistant = async (message) => {
-  const budgetMatch = message.match(/(\d+)[.,]?(\d{3})?\s?(k|nghìn|đ|vnd)/i);
+  const budgetMatch = message.match(/(\d+)[.,]?\s*(\d{3})?\s*(k|nghìn|đ|vnd)?/i);
+
   let priceLimit = 200000;
+
   if (budgetMatch) {
     const raw = budgetMatch[0].replace(/[^\d]/g, "");
     priceLimit = raw.length <= 3 ? parseInt(raw) * 1000 : parseInt(raw);
   }
-  const foods = await Food.find({ priceMin: { $lte: priceLimit } })
+
+  // Xác định tỉnh/thành người dùng đang hỏi
+  const provinceKeywords = [
+    "Huế",
+    "Hà Nội",
+    "Hải Phòng",
+    "Đà Nẵng",
+    "Hồ Chí Minh",
+    "TP Hồ Chí Minh",
+    "Sài Gòn",
+    "Hội An",
+    "Nha Trang",
+    "Đà Lạt",
+    "Cần Thơ",
+    "Hưng Yên",
+    "Hải Dương",
+    "Vĩnh Phúc",
+  ];
+
+  const provinceName = provinceKeywords.find((name) =>
+    message.toLowerCase().includes(name.toLowerCase())
+  );
+
+  let foods = await Food.find({
+    priceMin: { $lte: priceLimit },
+  })
     .sort({ rating: -1 })
-    .limit(5)
+    .limit(20)
     .populate("province", "name");
 
-  if (!foods.length) {
-    return "Xin lỗi, hiện chưa có dữ liệu phù hợp. Bạn thử mô tả rõ hơn về ngân sách và địa điểm nhé!";
+  // Nếu người dùng hỏi địa phương cụ thể,
+  // chỉ giữ món thuộc đúng địa phương đó
+  if (provinceName) {
+    foods = foods.filter(
+      (food) =>
+        food.province?.name?.toLowerCase() === provinceName.toLowerCase()
+    );
   }
+
+  if (!foods.length) {
+    return provinceName
+      ? `Mình chưa tìm thấy dữ liệu món ăn phù hợp ở ${provinceName} trong ngân sách ${priceLimit.toLocaleString()}đ. Bạn thử tăng ngân sách hoặc hỏi địa phương khác nhé.`
+      : "Xin lỗi, hiện chưa có dữ liệu món ăn phù hợp. Bạn thử cho mình biết địa điểm và ngân sách nhé.";
+  }
+
   const list = foods
-    .map((f) => `• ${f.name} (${f.province?.name || ""}) - khoảng ${f.priceMin.toLocaleString()}đ - ${f.priceMax.toLocaleString()}đ, rating ${f.rating.toFixed(1)}⭐`)
+    .slice(0, 5)
+    .map(
+      (f) =>
+        `• ${f.name} (${f.province?.name || "Chưa xác định"}) - khoảng ${f.priceMin?.toLocaleString()}đ - ${f.priceMax?.toLocaleString()}đ`
+    )
     .join("\n");
-  return `Với ngân sách khoảng ${priceLimit.toLocaleString()}đ, VietEats AI gợi ý:\n${list}\n\nBạn muốn mình chỉ đường tới quán gần nhất không?`;
+
+  return `Với ngân sách khoảng ${priceLimit.toLocaleString()}đ${
+    provinceName ? ` ở ${provinceName}` : ""
+  }, VietEats AI gợi ý:\n${list}\n\nBạn muốn mình gợi ý thêm món hoặc quán ăn gần bạn không?`;
 };
 
 /**
