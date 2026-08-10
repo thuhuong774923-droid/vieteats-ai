@@ -25,7 +25,7 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post("/api//auth/login", { email, password });
+      const { data } = await api.post("/auth/login", { email, password });
       localStorage.setItem("vieteats_token", data.data.accessToken);
       dispatch(setUser(data.data.user));
       router.push("/");
