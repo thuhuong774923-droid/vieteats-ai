@@ -31,6 +31,7 @@ app.use(mongoSanitize());
 app.use(xss());
 if (process.env.NODE_ENV !== "test") app.use(morgan("dev"));
 app.use("/api", apiLimiter);
+app.use("/api/auth", authRoutes);
 
 app.get("/api/health", (req, res) => res.json({ success: true, message: "VietEats AI API is running 🍜" }));
 
