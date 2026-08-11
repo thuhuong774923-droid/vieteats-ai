@@ -75,7 +75,6 @@ app.get("/api/run-seed/:key", async (req, res) => {
   }
 });
 
-app.use("/api/auth", authRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api/provinces", provinceRoutes);
 app.use("/api/restaurants", restaurantRoutes);
